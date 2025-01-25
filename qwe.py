@@ -102,89 +102,17 @@ loaded_tokenizer = AutoTokenizer.from_pretrained(save_directory)
 loaded_model = AutoModelForSequenceClassification.from_pretrained(save_directory).to(device)
 
 # Predict function for new text input using the saved model
-# def predict_text(text):
-#     inputs = loaded_tokenizer(text, return_tensors="pt", truncation=True, padding="max_length", max_length=128)
-#     inputs = {key: value.to(device) for key, value in inputs.items()}  # Move inputs to the correct device
-#     loaded_model.eval()  # Set model to evaluation mode
-#     with torch.no_grad():  # Disable gradient calculation
-#         outputs = loaded_model(**inputs)
-#     logits = outputs.logits
-#     predicted_class = torch.argmax(logits, dim=1).item()
-#     return {v: k for k, v in label_mapping.items()}[predicted_class]
-
-def predict_text(texts):
-    if isinstance(texts, str):
-        texts = [texts]  # Convert single input to list
-    
-    inputs = loaded_tokenizer(texts, return_tensors="pt", truncation=True, padding="max_length", max_length=128)
-    inputs = {key: value.to(device) for key, value in inputs.items()}  # Move to correct device
-
-    loaded_model.eval()
-    with torch.no_grad():
+def predict_text(text):
+    inputs = loaded_tokenizer(text, return_tensors="pt", truncation=True, padding="max_length", max_length=128)
+    inputs = {key: value.to(device) for key, value in inputs.items()}  # Move inputs to the correct device
+    loaded_model.eval()  # Set model to evaluation mode
+    with torch.no_grad():  # Disable gradient calculation
         outputs = loaded_model(**inputs)
-    
     logits = outputs.logits
-    probabilities = torch.nn.functional.softmax(logits, dim=1)  # Convert logits to probabilities
-    predicted_classes = torch.argmax(probabilities, dim=1).tolist()  # Convert to list of predicted labels
-
-    label_map_inverse = {v: k for k, v in label_mapping.items()}
-    return [{"text": t, "intent": label_map_inverse[p], "confidence": max(prob.tolist())} for t, p, prob in zip(texts, predicted_classes, probabilities)]
-
+    predicted_class = torch.argmax(logits, dim=1).item()
+    return {v: k for k, v in label_mapping.items()}[predicted_class]
 
 # Test the model on a sample text
 sample_text = "Change the name of the entry which have age>0 and height<120 and whose count is 100"
 predicted_intent = predict_text(sample_text)
 print("Predicted Intent:", predicted_intent)
-
-# # Evaluate the model on the test dataset
-# def evaluate_model(test_dataset):
-#     # Ensure the test dataset is formatted for PyTorch
-#     test_dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "labels"])
-
-#     # Create DataLoader for test dataset
-#     from torch.utils.data import DataLoader
-#     from tqdm import tqdm
-
-#     test_loader = DataLoader(test_dataset, batch_size=16)
-#     correct = 0
-#     total = 0
-#     all_predictions = []
-#     all_labels = []
-
-#     loaded_model.eval()  # Set the model to evaluation mode
-#     with torch.no_grad():  # Disable gradient calculations for evaluation
-#         for batch in tqdm(test_loader, desc="Evaluating"):
-#             input_ids = batch["input_ids"].to(device)
-#             attention_mask = batch["attention_mask"].to(device)
-#             labels = batch["labels"].to(device)
-
-#             outputs = loaded_model(input_ids=input_ids, attention_mask=attention_mask)
-#             logits = outputs.logits
-#             predictions = torch.argmax(logits, dim=1)
-
-#             # Update accuracy metrics
-#             correct += (predictions == labels).sum().item()
-#             total += labels.size(0)
-            
-#             # Collect predictions and labels for other metrics
-#             all_predictions.extend(predictions.cpu().numpy())
-#             all_labels.extend(labels.cpu().numpy())
-
-#     # Compute accuracy
-#     accuracy = correct / total
-#     print(f"Accuracy: {accuracy:.4f}")
-
-#     # Use sklearn for additional metrics
-#     from sklearn.metrics import classification_report, confusion_matrix
-
-#     print("\nClassification Report:")
-#     print(classification_report(all_labels, all_predictions, target_names=label_mapping.keys()))
-
-#     print("\nConfusion Matrix:")
-#     print(confusion_matrix(all_labels, all_predictions))
-
-#     return accuracy
-
-# # Call the evaluation function
-# print("Evaluating the saved model...")
-# accuracy = evaluate_model(test_dataset)

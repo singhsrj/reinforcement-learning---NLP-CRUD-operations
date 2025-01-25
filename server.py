@@ -36,11 +36,11 @@ def predict_text(text):
 @app.route('/getIntent', methods=['POST'])
 def post_data():
     data = request.get_json()
-    if not data or 'peragraph' not in data:
+    if not data or 'paragraph' not in data:
         return jsonify({"response": "false"})
     
-    intent = predict_text(data['peragraph'])
-    print(data['peragraph'])
+    intent = predict_text(data['paragraph'])
+    print(data['paragraph'])
     
     return jsonify({"intent": intent})
 

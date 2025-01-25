@@ -1,11 +1,10 @@
 # Use Python base image
 FROM python:3.10
+# Copy project files into the container
+COPY . /app
 
 # Set the working directory
-WORKDIR C:\Users\suraj\Desktop\reinforcement learning - NLP CRUD operations
-
-# Copy project files into the container
-COPY . .
+WORKDIR /app    
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt

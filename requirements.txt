@@ -6,7 +6,7 @@ torch
 transformers
 datasets
 evaluate
-csv 
-random
 Flask
-os
+uvicorn
+google
+flask_cors
